@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Daga - Plateforme E-Commerce de Classe Mondiale</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- APP TOP BAR (PRO HEADER) -->
+    <header class="app-header">
+        <div class="header-brand">
+            <div class="brand-badge">DAGA</div>
+            <div class="brand-meta">
+                <h1>DAGA ENTERPRISE</h1>
+                <span class="status-indicator"><span class="dot-online"></span> Réseau Officiel Ouagadougou</span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button onclick="installPWA()" id="pwa-install-btn" class="pwa-action-btn" style="display:none;">📲 Installer L'App</button>
+        </div>
+    </header>
+
+    <!-- BOTTOM NAVIGATION FIXED BAR (5 ONGLETS STYLE SHOPIFY NATIVE) -->
+    <nav class="bottom-nav">
+        <button onclick="switchMainTab('buyer')" id="nav-buyer" class="nav-btn active">
+            <span class="nav-icon">🏪</span>
+            <span class="nav-title">Marché</span>
+        </button>
+        <button onclick="switchMainTab('seller')" id="nav-seller" class="nav-btn">
+            <span class="nav-icon">💼</span>
+            <span class="nav-title">Vendeur</span>
+        </button>
+        <button onclick="switchMainTab('admin')" id="nav-admin" class="nav-btn">
+            <span class="nav-icon">🔒</span>
+            <span class="nav-title">Admin</span>
+        </button>
+    </nav>
+
+    <!-- WORKSPACE PRINCIPAL -->
+    <main class="app-workspace">
+
+        <!-- VUE 1 : CATALOGUE PUBLIC (MARCHÉ GENERAL) -->
+        <section id="view-buyer" class="app-view">
+            <div class="hero-premium">
+                <span class="hero-pill">✨ Daga Marketplace V3 Pro</span>
+                <h2>Le Grand Marché Réinventé</h2>
+                <p>Achetez en direct auprès des plus grandes boutiques certifiées de Ouagadougou via WhatsApp sans intermédiaire.</p>
+            </div>
+
+            <div class="search-filter-stack">
+                <div class="input-icon-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="search-input" class="pro-input search-input" placeholder="Rechercher un produit, un article, un commerçant..." onkeyup="filterProducts()">
+                </div>
+                <select id="category-filter" class="pro-input select-input" onchange="filterProducts()">
+                    <option value="">Toutes les catégories</option>
+                    <option value="Mode">Mode & Luxe</option>
+                    <option value="Electro">Électronique & High-Tech</option>
+                    <option value="Maison">Maison & Mobilier</option>
+                    <option value="Autre">Divers & Accessoires</option>
+                </select>
+            </div>
+
+            <div id="products-list" class="products-grid">
+                <!-- Injection dynamique des articles -->
+            </div>
+        </section>
+
+        <!-- VUE 2 : DASHBOARD VENDEUR (STYLE SHOPIFY MERCHANT CENTER) -->
+        <section id="view-seller" class="app-view hidden">
+            
+            <!-- ÉCRAN DE CONNEXION VENDEUR -->
+            <div id="seller-auth-card" class="pro-card auth-card">
+                <div class="auth-badge">AUTHENTIFICATION VENDEUR</div>
+                <h2>Espace Marchand Daga</h2>
+                <p>Connectez votre numéro WhatsApp professionnel pour accéder à votre administration et gérer vos publications.</p>
+
+                <div class="form-group">
+                    <label>Numéro WhatsApp Officiel de la Boutique :</label>
+                    <input type="text" id="seller-phone-input" class="pro-input" placeholder="Ex: +226 51 89 29 52">
+                </div>
+                <button onclick="authenticateSeller()" class="btn-primary-pro">Accéder à mon Espace Marchand</button>
+                <div id="seller-auth-alert" style="margin-top:15px;"></div>
+            </div>
+
+            <!-- TABLEAU DE BORD VENDEUR -->
+            <div id="seller-dashboard-panel" class="hidden">
+                
+                <!-- SOUS-NAVIGATION SUB-TAB BAR -->
+                <div class="sub-tab-bar">
+                    <button onclick="switchSellerSubTab('overview')" id="subtab-overview" class="sub-tab-btn active">📊 Vue Générale & Abonnements</button>
+                    <button onclick="switchSellerSubTab('catalog')" id="subtab-catalog" class="sub-tab-btn">📦 Catalogue & Studio Produit</button>
+                    <button onclick="switchSellerSubTab('settings')" id="subtab-settings" class="sub-tab-btn">⚙️ Profil & Identité</button>
+                </div>
+
+                <!-- PANE 1 : APERÇU ET ABONNEMENT STRICT -->
+                <div id="seller-pane-overview" class="seller-pane">
+                    <div id="seller-subscription-alert" class="pro-alert"></div>
+
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <span class="metric-label">Articles en ligne</span>
+                            <h3 id="stat-my-products" class="metric-value">0</h3>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Jours Restants</span>
+                            <h3 id="stat-days-left" class="metric-value">0</h3>
+                        </div>
+                    </div>
+
+                    <div class="pro-card" style="margin-top: 20px;">
+                        <div class="card-header-flex">
+                            <h3>Grille des Abonnements Mensuels Daga</h3>
+                            <span class="pill-verified">Règlement Officiel WhatsApp</span>
+                        </div>
+                        <p class="card-subtitle">
+                            Payez votre abonnement par <strong>Orange Money ou Moov Money</strong> au numéro officiel <strong>+226 51 89 29 52</strong>, puis envoyez votre reçu pour activation immédiate.
+                        </p>
+
+                        <div class="pricing-plans-grid">
+                            <div class="plan-card">
+                                <h4>Starter</h4>
+                                <div class="plan-price">3 000 FCFA <small>/30j</small></div>
+                                <ul class="plan-features">
+                                    <li>Jusqu'à 5 articles publiés</li>
+                                    <li>Vitrine Daga Standard</li>
+                                </ul>
+                            </div>
+                            <div class="plan-card featured">
+                                <div class="plan-badge">RECOMMANDÉ</div>
+                                <h4>Pro Merchant</h4>
+                                <div class="plan-price">6 000 FCFA <small>/30j</small></div>
+                                <ul class="plan-features">
+                                    <li>Jusqu'à 25 articles publiés</li>
+                                    <li>Badge Vendeur Vérifié</li>
+                                </ul>
+                            </div>
+                            <div class="plan-card">
+                                <h4>VIP Enterprise</h4>
+                                <div class="plan-price">10 000 FCFA <small>/30j</small></div>
+                                <ul class="plan-features">
+                                    <li>Articles Illimités</li>
+                                    <li>Placement prioritaire Accueil</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <a id="whatsapp-activation-link" href="#" target="_blank" class="whatsapp-btn-pro" style="margin-top: 20px;">
+                            💬 Activer / Prolonger ma Boutique au +226 51 89 29 52
+                        </a>
+                    </div>
+                </div>
+
+                <!-- PANE 2 : STUDIO PRODUIT & MAQUILLAGE SHOPIFY -->
+                <div id="seller-pane-catalog" class="seller-pane hidden">
+                    <div class="pro-card">
+                        <h3>Studio de Maquillage & Publication Fiche Produit</h3>
+                        <p class="card-subtitle">Créez des fiches produits haut de gamme dotées de promotions, badges et designs sophistiqués.</p>
+
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label>Titre de l'Article :</label>
+                                <input type="text" id="prod-name" class="pro-input" placeholder="Ex: Ensemble Costume Italiens Slim Fit">
+                            </div>
+                            <div class="form-group">
+                                <label>Prix Officiel (FCFA) :</label>
+                                <input type="text" id="prod-price" class="pro-input" placeholder="Ex: 25000 FCFA">
+                            </div>
+                            <div class="form-group">
+                                <label>Prix Barré / Promo (Optionnel) :</label>
+                                <input type="text" id="prod-oldprice" class="pro-input" placeholder="Ex: 35000 FCFA">
+                            </div>
+                            <div class="form-group">
+                                <label>Badge Flottant Promotionnel :</label>
+                                <select id="prod-badge" class="pro-input">
+                                    <option value="">Aucun Badge</option>
+                                    <option value="🔥 TOP VENTE">🔥 TOP VENTE</option>
+                                    <option value="✨ NOUVEAUTÉ">✨ NOUVEAUTÉ</option>
+                                    <option value="⭐ COLLECTION LUXE">⭐ COLLECTION LUXE</option>
+                                    <option value="🚚 LIVRAISON OFFERTE">🚚 LIVRAISON OFFERTE</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Description Détaillée & Tailles / Couleurs :</label>
+                            <textarea id="prod-desc" class="pro-input" rows="3" placeholder="Présentez les arguments de vente, les matériaux, les pointures ou tailles disponibles..."></textarea>
+                        </div>
+
+                        <button onclick="publishProductPro()" class="btn-primary-pro">Mettre en Ligne sur le Marché Daga</button>
+                    </div>
+
+                    <div class="pro-card" style="margin-top:20px;">
+                        <h3>Gestion de Mon Catalogue</h3>
+                        <div id="seller-my-products-container"></div>
+                    </div>
+                </div>
+
+                <!-- PANE 3 : PARAMÈTRES & PROFIL -->
+                <div id="seller-pane-settings" class="seller-pane hidden">
+                    <div class="pro-card">
+                        <h3>Profil & Configuration de la Boutique</h3>
+                        <div class="form-group">
+                            <label>Nom Commercial de la Boutique :</label>
+                            <input type="text" id="shop-name-input" class="pro-input" placeholder="Ex: Ouaga Electronics VIP">
+                        </div>
+                        <div class="form-group">
+                            <label>Catégorie de la Boutique :</label>
+                            <select id="shop-cat-input" class="pro-input">
+                                <option value="Mode">Mode & Luxe</option>
+                                <option value="Electro">Électronique & High-Tech</option>
+                                <option value="Maison">Maison & Mobilier</option>
+                                <option value="Autre">Divers</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Présentation / Bio Officielle :</label>
+                            <textarea id="shop-desc-input" class="pro-input" rows="2" placeholder="Ex: Vente de téléphones originaux scellés garantis 12 mois..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Lien Facebook / Instagram (Optionnel) :</label>
+                            <input type="text" id="shop-fb-input" class="pro-input" placeholder="https://facebook.com/votre_page">
+                        </div>
+                        <button onclick="saveShopProfile()" class="btn-dark-pro">Sauvegarder les Paramètres</button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- VUE 3 : SUPER ADMIN CENTRALIZED HUB -->
+        <section id="view-admin" class="app-view hidden">
+            <div class="pro-card" style="max-width: 650px; margin: 0 auto;">
+                <div class="auth-badge" style="background:#0f172a;">ADMINISTRATION CENTRALE DAGA</div>
+                <h2>Panneau de Contrôle Master</h2>
+                <p class="card-subtitle">Validez les abonnements des boutiques après réception du transfert Orange Money / Moov Money au +226 51 89 29 52.</p>
+
+                <div id="admin-auth-box">
+                    <div class="form-group">
+                        <label>Mot de passe Administrateur :</label>
+                        <input type="password" id="admin-pass-input" class="pro-input" placeholder="Entrez la clé de sécurité admin">
+                    </div>
+                    <button onclick="verifyAdminLogin()" class="btn-primary-pro">Connexion Administrateur</button>
+                    <div id="admin-auth-alert" style="margin-top:10px;"></div>
+                </div>
+
+                <div id="admin-dashboard-box" class="hidden">
+                    <div class="metrics-grid" style="margin-bottom:20px;">
+                        <div class="metric-card">
+                            <span class="metric-label">Boutiques Totales</span>
+                            <h3 id="admin-stat-sellers" class="metric-value">0</h3>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Articles Actifs</span>
+                            <h3 id="admin-stat-products" class="metric-value">0</h3>
+                        </div>
+                    </div>
+
+                    <div class="pro-card" style="background:#f8fafc; border: 1px solid var(--border-color);">
+                        <h3>Valider / Recharger 30 Jours d'Abonnement</h3>
+                        <div class="form-group">
+                            <label>Numéro WhatsApp du Vendeur :</label>
+                            <input type="text" id="admin-target-phone" class="pro-input" placeholder="Ex: +226 51 89 29 52">
+                        </div>
+                        <div class="form-group">
+                            <label>Forfait attribué :</label>
+                            <select id="admin-target-plan" class="pro-input">
+                                <option value="Starter">Starter (5 produits max)</option>
+                                <option value="Pro" selected>Pro Merchant (25 produits max)</option>
+                                <option value="VIP">VIP Enterprise (Illimité)</option>
+                            </select>
+                        </div>
+                        <button onclick="adminGrantSubscription()" class="btn-primary-pro">Accorder 30 Jours d'Accès</button>
+                        <div id="admin-grant-alert" style="margin-top:10px;"></div>
+                    </div>
+
+                    <div style="margin-top:25px;">
+                        <h3>Répertoire des Vendeurs Inscrits</h3>
+                        <div id="admin-sellers-table-container" style="overflow-x:auto; margin-top:10px;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
